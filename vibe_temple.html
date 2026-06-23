@@ -1,0 +1,2015 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIBE TEMPLE | 數位廟宇未來境</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        temple: {
+                            gold: '#FFD700',
+                            bronze: '#CD7F32',
+                            red: '#FF3B30',
+                            neonPink: '#FF2E93',
+                            neonCyan: '#00F0FF',
+                            darkBg: '#0B0914',
+                            cardBg: '#161226'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                        display: ['Orbitron', 'Noto Sans TC', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght=300;400;700;900&family=Orbitron:wght=400;700;900&display=swap" rel="stylesheet">
+    
+    <!-- GSAP for core animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <style>
+        html, body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            cursor: none !important;
+            font-family: 'Noto Sans TC', 'Inter', sans-serif;
+            background: linear-gradient(to bottom, #FFFFFF 0%, #FFFF00 100%) no-repeat fixed;
+            color: #0F172A;
+            overflow-x: hidden;
+            transition: background-color 0.7s ease, background 0.7s ease;
+        }
+        
+        .cursor-target, button, a, img, input, select {
+            cursor: none !important;
+        }
+
+        .target-cursor-wrapper,
+        .target-cursor-wrapper * {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none !important;
+            z-index: 9999;
+            will-change: transform;
+        }
+
+        /* Hide Scrollbar */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Dynamic Animations */
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+        .pulse-glow {
+            animation: pulseGlow 3s infinite ease-in-out;
+        }
+
+        @keyframes floatEffect {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(1deg); }
+        }
+        .float-anim {
+            animation: floatEffect 4s infinite ease-in-out;
+        }
+
+        /* 香火袋常態微幅晃動 */
+        @keyframes bagIdleSwing {
+            0% { transform: translate(0px, 0px) rotate(0deg); }
+            25% { transform: translate(6px, -4px) rotate(4deg); }
+            50% { transform: translate(0px, 6px) rotate(-4deg); }
+            75% { transform: translate(-6px, -4px) rotate(4deg); }
+            100% { transform: translate(0px, 0px) rotate(0deg); }
+        }
+        .bag-idle-animate {
+            animation: bagIdleSwing 4s ease-in-out infinite;
+            transform-origin: top center;
+        }
+
+        /* 香火袋點擊物理彈性晃動 */
+        @keyframes bagActiveSwing {
+            0% { transform: scale(1.12) translate(0px, 0px); }
+            10% { transform: scale(1.3) translate(-25px, 20px); }
+            20% { transform: scale(1.35) translate(30px, -25px); }
+            30% { transform: scale(1.38) translate(-20px, -30px); }
+            40% { transform: scale(1.4) translate(25px, 25px); }
+            50% { transform: scale(1.4) translate(-30px, 10px); }
+            60% { transform: scale(1.35) translate(20px, -20px); }
+            70% { transform: scale(1.25) translate(-15px, 15px); }
+            80% { transform: scale(1.15) translate(10px, -10px); }
+            90% { transform: scale(1.05) translate(-5px, 5px); }
+            100% { transform: scale(1) translate(0px, 0px); }
+        }
+        .bag-active-animate {
+            animation: bagActiveSwing 0.85s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+            transform-origin: top center;
+        }
+
+        /* 🎴 TiltedCard 傾斜卡牌基礎樣式 */
+        .tilted-card-figure {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            perspective: 800px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .tilted-card-inner {
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+            will-change: transform;
+        }
+        .tilted-card-img {
+            object-fit: cover;
+            border-radius: 15px;
+            will-change: transform;
+            transform: translateZ(0);
+            border: 2px solid rgba(255, 46, 147, 0.4);
+            box-shadow: 0 15px 35px rgba(255, 46, 147, 0.2);
+        }
+        .tilted-card-caption {
+            pointer-events: none;
+            position: absolute;
+            left: 0;
+            top: 0;
+            border-radius: 4px;
+            background-color: #FFFFFF;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: 800;
+            color: #FF2E93;
+            border: 1px solid #FF2E93;
+            opacity: 0;
+            z-index: 60;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translate(-50%, -120%);
+            transition: opacity 0.2s ease;
+        }
+        .tilted-card-mobile-alert {
+            position: absolute;
+            top: 1rem;
+            text-align: center;
+            font-size: 0.875rem;
+            display: none;
+            color: #FF2E93;
+        }
+        @media (max-width: 640px) {
+            .tilted-card-mobile-alert { display: block; }
+            .tilted-card-caption { display: none !important; }
+        }
+
+        /* PixelCard Hover Cover */
+        .pixel-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        /* 🔬 科技感長方形粉色漸層放大鏡 */
+        .poem-container-relative {
+            position: relative;
+            cursor: none;
+        }
+        .lens-scanner-box {
+            position: absolute;
+            width: 240px;  /* 長方形寬度 */
+            height: 140px; /* 長方形高度 */
+            border: 3px solid;
+            border-image: linear-gradient(135deg, #FF2E93, #FF8EBE) 1;
+            box-shadow: 0 0 25px rgba(255, 46, 147, 0.6), inset 0 0 15px rgba(255, 46, 147, 0.4);
+            pointer-events: none;
+            overflow: hidden;
+            display: none;
+            z-index: 50;
+        }
+        .lens-scanner-img {
+            position: absolute;
+            max-width: none !important;
+            width: auto;
+            height: auto;
+            image-rendering: auto;
+        }
+        .lens-scanner-cross {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+        .lens-scanner-cross::before, .lens-scanner-cross::after {
+            content: '';
+            position: absolute;
+            background: #FF2E93;
+            opacity: 0.6;
+        }
+        .lens-scanner-cross::before {
+            top: 50%; left: 10%; right: 10%; height: 1px; transform: translateY(-50%);
+        }
+        .lens-scanner-cross::after {
+            left: 50%; top: 10%; bottom: 10%; width: 1px; transform: translateX(-50%);
+        }
+
+        /* 滿版黃色光芒閃爍遮罩 */
+        #divine-gold-flash {
+            position: fixed;
+            inset: 0;
+            background-color: #FFFF00;
+            z-index: 999;
+            pointer-events: none;
+            opacity: 0;
+            mix-blend-mode: screen;
+        }
+
+        /* 💬 點擊卡牌後在滑鼠點擊（雷射十字）上跳出的長方形對話框 */
+        #crosshair-story-modal {
+            position: fixed;
+            z-index: 100;
+            width: 320px;
+            background: linear-gradient(135deg, #FF2E93 0%, #FF5EAD 100%);
+            border: 3px solid #FFFF00;
+            padding: 24px;
+            box-shadow: 0 20px 50px rgba(255, 46, 147, 0.5), 0 0 30px rgba(255, 235, 0, 0.3);
+            display: none;
+            opacity: 0;
+            transform: scale(0.85);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: auto;
+        }
+
+        /* 🎛️ ElasticSlider Styles */
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            width: 14rem;
+        }
+
+        .slider-wrapper {
+            display: flex;
+            width: 100%;
+            touch-action: none;
+            user-select: none;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .slider-root {
+            position: relative;
+            display: flex;
+            width: 100%;
+            max-width: 200px;
+            flex-grow: 1;
+            cursor: grab;
+            touch-action: none;
+            user-select: none;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .slider-root:active {
+            cursor: grabbing;
+        }
+
+        .slider-track-wrapper {
+            display: flex;
+            flex-grow: 1;
+        }
+
+        .slider-track {
+            position: relative;
+            height: 6px;
+            flex-grow: 1;
+            overflow: hidden;
+            border-radius: 9999px;
+            background-color: rgba(255, 46, 147, 0.2);
+            transition: height 0.2s ease, margin 0.2s ease;
+        }
+
+        .slider-range {
+            position: absolute;
+            height: 100%;
+            background-color: #FF2E93;
+            border-radius: 9999px;
+            width: 50%;
+        }
+
+        .value-indicator {
+            color: #FF2E93;
+            position: absolute;
+            transform: translateY(-1.2rem);
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            pointer-events: none;
+        }
+
+        .elastic-icon {
+            width: 24px;
+            height: 24px;
+            color: #FF2E93;
+            transition: transform 0.1s ease;
+            will-change: transform;
+        }
+    </style>
+</head>
+<body class="relative flex flex-col justify-between">
+
+    <!-- 滿版金黃聖光閃爍層 -->
+    <div id="divine-gold-flash"></div>
+
+    <!-- 💬 點擊卡牌時於十字雷射落點跳出的精緻方框 -->
+    <div id="crosshair-story-modal" class="rounded-none text-left">
+        <button onclick="closeStoryModal()" class="absolute top-2 right-3 text-white hover:text-[#FFFF00] text-xl font-bold cursor-target focus:outline-none transition-colors">×</button>
+        <div class="flex flex-col space-y-3">
+            <h3 id="modal-candidate-name" class="text-2xl font-black text-[#FFFF00] tracking-wider border-b border-white/20 pb-2">宮主名字</h3>
+            <p id="modal-candidate-story" class="text-sm font-bold leading-relaxed text-white">
+                載入中...
+            </p>
+        </div>
+    </div>
+
+    <!-- Glitchy Crosshair Custom TargetCursor Wrapper -->
+    <div id="target-cursor" class="target-cursor-wrapper hidden md:block">
+        <svg style="position: absolute; width: 0; height: 0; overflow: hidden;">
+            <defs>
+                <filter id="filter-noise-x">
+                    <feTurbulence type="fractalNoise" baseFrequency="0.000001" numOctaves="1" id="filter-noise-x-turb" />
+                    <feDisplacementMap in="SourceGraphic" scale="40" />
+                </filter>
+                <filter id="filter-noise-y">
+                    <feTurbulence type="fractalNoise" baseFrequency="0.000001" numOctaves="1" id="filter-noise-y-turb" />
+                    <feDisplacementMap in="SourceGraphic" scale="40" />
+                </filter>
+            </defs>
+        </svg>
+        <div id="target-cursor-dot" class="target-cursor-dot"></div>
+        <div id="crosshair-h" style="position: absolute; left: 0; width: 100%; height: 1px; background: #FF2E93; pointer-events: none; mix-blend-mode: difference; transform: translateY(-50%); opacity: 0; will-change: transform;"></div>
+        <div id="crosshair-v" style="position: absolute; top: 0; height: 100%; width: 1px; background: #FF2E93; pointer-events: none; mix-blend-mode: difference; transform: translateX(-50%); opacity: 0; will-change: transform;"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex justify-between items-start bg-transparent pointer-events-none">
+        <div class="flex items-center space-x-2 pointer-events-auto cursor-target mt-2" onclick="goToHome()">
+            <div id="header-brand-container" class="h-8 flex items-center space-x-2">
+                <img id="header-brand-img" src="https://i.postimg.cc/bNcgwxk7/zi-chan-5-4x.png" alt="造勢北港" class="h-full w-auto select-none pointer-events-none transition-all duration-500 object-contain">
+            </div>
+        </div>
+        
+        <!-- 音量控制容器 -->
+        <div class="flex flex-col items-end space-y-2 pointer-events-auto">
+            <button id="soundToggle" onclick="toggleVolumeDropdown()" class="bg-white/90 hover:bg-white/100 border border-slate-200 px-4 py-2 rounded-full text-xs font-display flex items-center space-x-2 transition duration-300 backdrop-blur-md text-slate-800 cursor-target shadow-md">
+                <span id="soundIcon" class="text-sm">🔊</span>
+                <span id="soundText" class="uppercase font-extrabold tracking-wider">Sound 50%</span>
+            </button>
+            
+            <!-- 🎛️ Vanilla ElasticSlider Dropdown 彈出容器 -->
+            <div id="volume-slider-dropdown" class="hidden opacity-0 scale-95 origin-top-right bg-white/95 border border-slate-200/60 p-5 rounded-2xl shadow-2xl backdrop-blur-lg flex flex-col items-center justify-center transition-all duration-300">
+                <div class="slider-container relative">
+                    <p id="elastic-value-indicator" class="value-indicator">50</p>
+                    <div class="slider-wrapper">
+                        <!-- Left Icon (Volume Down) -->
+                        <div id="elastic-icon-left" class="elastic-icon flex items-center justify-center">
+                            <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M5 17H3V7h2zm6.207-13.707L6.5 8H3v8h3.5l4.707 4.707A1 1 0 0 0 13 20V4a1 1 0 0 0-1.793-.707zm5.3-.293l-1.414 1.414A5.474 5.474 0 0 1 17 12a5.474 5.474 0 0 1-2.107 4.586l1.414 1.414A7.47 7.47 0 0 0 19 12a7.47 7.47 0 0 0-2.493-5.593z"></path>
+                            </svg>
+                        </div>
+
+                        <!-- Slider Track Core -->
+                        <div id="volume-slider-root" class="slider-root cursor-target" onpointerdown="handleSliderPointerDown(event)">
+                            <div class="slider-track-wrapper w-full">
+                                <div id="volume-slider-track" class="slider-track w-full">
+                                    <div id="volume-slider-range" class="slider-range"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Icon (Volume Up) -->
+                        <div id="elastic-icon-right" class="elastic-icon flex items-center justify-center">
+                            <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M5 17H3V7h2zm6.207-13.707L6.5 8H3v8h3.5l4.707 4.707A1 1 0 0 0 13 20V4a1 1 0 0 0-1.793-.707zm7.5 7.707a3.5 3.5 0 0 0 0-6V7a5.5 5.5 0 0 1 0 10zm-3 0a1.5 1.5 0 0 0 0-3V9a1.5 1.5 0 0 1 0 3z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="w-full h-full mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12 z-10 flex flex-col items-center justify-center flex-grow">
+
+        <!-- PART 1: HOME PAGE -->
+        <section id="sect-home" class="fixed inset-0 z-10 flex flex-col items-center justify-center transition-all duration-700 ease-in-out">
+            <div class="w-full max-w-4xl px-6 flex flex-col items-center text-center relative select-none">
+                <div id="main-logo-container" class="relative w-full max-w-md sm:max-w-lg md:max-w-xl mb-6 float-anim flex justify-center items-center">
+                    <img id="main-brand-img" src="https://i.postimg.cc/28ZdpVJp/zi-chan-6-4x.png" alt="造勢北港" class="w-full h-auto drop-shadow-[0_12px_24px_rgba(255,46,147,0.45)] select-none pointer-events-none object-contain">
+                </div>
+                
+                <button id="btn-explore" onclick="triggerTransition('select')" class="group relative transition-all duration-300 transform active:scale-95 hover:scale-105 flex items-center justify-center focus:outline-none cursor-target">
+                    <img src="https://i.postimg.cc/g0S4z1H3/zi-chan-3-4x.png" alt="探索旅程" class="max-w-[150px] sm:max-w-[180px] md:max-w-[210px] h-auto object-contain select-none pointer-events-none">
+                </button>
+            </div>
+        </section>
+
+        <!-- TRANSITION LAYER -->
+        <section id="sect-transition" class="hidden fixed inset-0 z-[9999] bg-gradient-to-b from-white to-[#FFFF00] flex flex-col items-center justify-center transition-all duration-700 ease-in-out">
+            <div class="flex flex-col items-center justify-center text-center w-full">
+                <div class="relative w-[15vw] max-w-[120px] min-w-[70px] aspect-square flex items-center justify-center float-anim">
+                    <div id="cycling-auras" class="absolute inset-0 rounded-full filter blur-xl opacity-20 transition-all duration-150"></div>
+                    <img id="cycling-icon-image" src="https://i.postimg.cc/X7ZWjTdg/zi-chan-12-4x.png" alt="載入中..." class="w-full h-full object-contain select-none pointer-events-none pulse-glow">
+                </div>
+            </div>
+        </section>
+
+        <!-- PART 2: SELECT YOUR FA-QI -->
+        <section id="sect-select" class="hidden w-full h-full flex flex-col items-center justify-center text-center py-6 transition-all duration-700 ease-in-out select-none">
+            <h2 class="font-sans font-black text-2xl sm:text-3xl md:text-4xl tracking-widest mb-16 text-temple-neonPink">
+                請選擇你的家業
+            </h2>
+
+            <div id="flat-icon-deck" class="flex flex-col sm:flex-row justify-center items-center gap-10 sm:gap-14 md:gap-16 w-full max-w-5xl mx-auto px-4">
+                <div onclick="handleFlatIconClick(0)" class="group flex flex-col items-center justify-center cursor-target transition-all duration-300 transform hover:scale-110 active:scale-95">
+                    <div class="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 flex items-center justify-center relative transition-transform duration-300 group-hover:-translate-y-2">
+                        <img src="https://i.postimg.cc/s2dGpmD2/zi-chan-14-4x.png" alt="北港大餅" class="w-full h-full select-none pointer-events-none object-contain">
+                    </div>
+                </div>
+
+                <div onclick="handleFlatIconClick(1)" class="group flex flex-col items-center justify-center cursor-target transition-all duration-300 transform active:scale-95 hover:scale-110">
+                    <div class="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 flex items-center justify-center relative transition-transform duration-300 group-hover:-translate-y-2">
+                        <img src="https://i.postimg.cc/QtjBzMTP/zi-chan-11-4x.png" alt="藝閣車" class="w-full h-full select-none pointer-events-none object-contain">
+                    </div>
+                </div>
+
+                <div onclick="handleFlatIconClick(2)" class="group flex flex-col items-center justify-center cursor-target transition-all duration-300 transform active:scale-95 hover:scale-110">
+                    <div class="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 flex items-center justify-center relative transition-transform duration-300 group-hover:-translate-y-2 scale-80">
+                        <img src="https://i.postimg.cc/hvjXS3Mj/zi-chan-12-4x.png" alt="燈籠文化" class="w-full h-full select-none pointer-events-none object-contain">
+                    </div>
+                </div>
+
+                <div onclick="handleFlatIconClick(3)" class="group flex flex-col items-center justify-center cursor-target transition-all duration-300 transform active:scale-95 hover:scale-110">
+                    <div class="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 flex items-center justify-center relative transition-transform duration-300 group-hover:-translate-y-2">
+                        <img src="https://i.postimg.cc/WzHht6fm/zi-chan-13-4x.png" alt="北港宮廟" class="w-full h-full select-none pointer-events-none object-contain">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PART 3: CULTURAL EXPLANATION -->
+        <section id="sect-intro-cultural" class="hidden w-full h-full flex flex-col items-center justify-center transition-all duration-750 ease-in-out relative min-h-[500px]">
+            <div id="cultural-main-content" class="w-full max-w-5xl flex flex-col md:flex-row items-center justify-center gap-12 z-10 relative mt-10 px-6">
+                
+                <!-- 【左側區域】：切換箭頭與 3D 傾斜卡牌 -->
+                <div id="cultural-left-layout" class="flex items-center justify-center space-x-6 sm:space-x-8 transition-all duration-500 shrink-0">
+                    <button id="btn-heritage-prev" onclick="navigateHeritage(-1)" class="w-12 h-12 rounded-full border-2 border-[#FF2E93] bg-transparent flex items-center justify-center text-[#FF2E93] hover:bg-[#FF2E93] hover:text-white transition duration-300 cursor-target select-none shadow-md">
+                        <span class="text-xl font-bold">❮</span>
+                    </button>
+                    
+                    <!-- 卡牌容器 -->
+                    <div class="cultural-flip-container w-64 h-[380px] sm:w-80 sm:h-[480px]">
+                        <!-- TiltedCard 容器 -->
+                        <figure id="interactive-cultural-card" class="tilted-card-figure cursor-target" onclick="triggerCrosshairStory(event)">
+                            <div class="tilted-card-mobile-alert">This effect is not optimized for mobile. Check on desktop.</div>
+                            
+                            <div class="tilted-card-inner w-full h-full">
+                                <!-- 卡牌正面展示 -->
+                                <div id="cultural-display-icon-front" class="w-full h-full flex items-center justify-center relative rounded-[15px] overflow-hidden bg-black">
+                                    <!-- 動態置入直角高解析卡片 -->
+                                </div>
+                                <canvas id="pixel-canvas" class="pixel-canvas"></canvas>
+                            </div>
+
+                            <!-- 鼠標跟隨提示標籤 (Tooltip) -->
+                            <figcaption id="tilted-card-tooltip" class="tilted-card-caption">
+                                點擊解鎖...
+                            </figcaption>
+                        </figure>
+                    </div>
+                    
+                    <button id="btn-heritage-next" onclick="navigateHeritage(1)" class="w-12 h-12 rounded-full border-2 border-[#FF2E93] bg-transparent flex items-center justify-center text-[#FF2E93] hover:bg-[#FF2E93] hover:text-white transition duration-300 cursor-target select-none shadow-md">
+                        <span class="text-xl font-bold">❯</span>
+                    </button>
+                </div>
+
+                <!-- 【右側介紹區域】 -->
+                <div id="cultural-right-layout" class="w-full max-w-sm transition-all duration-500 flex flex-col items-start justify-center text-left">
+                    <h3 id="cultural-title" class="text-4xl font-sans font-black tracking-tight mb-4 text-[#FF2E93] drop-shadow-sm">文化法器</h3>
+                    <p id="cultural-desc" class="text-[#FF2E93] text-sm sm:text-base font-bold leading-relaxed">載入中...</p>
+                </div>
+
+            </div>
+
+            <!-- 底部控制區域 (原本「遊戲介紹」在此連接香火袋，寬度與「重新選擇家業」相同 w-64) -->
+            <div id="cultural-bottom-bar" class="flex flex-col sm:flex-row justify-center items-center w-full mt-16 z-10 transition-all duration-500 gap-6 px-6">
+                <button id="btn-back-faqi" onclick="triggerTransition('select')" class="w-64 h-12 border-2 border-[#FF2E93] text-[#FF2E93] bg-white hover:bg-[#FF2E93] hover:text-white rounded-full text-xs font-sans font-bold tracking-widest uppercase transition flex items-center justify-center space-x-2 cursor-target shadow-md">
+                    <span>⬅</span>
+                    <span>重新選擇家業</span>
+                </button>
+                
+                <!-- 🏮 經典「遊戲介紹」入口 (高度與寬度完全對齊) -->
+                <button id="btn-game-intro" onclick="triggerTransitionWithStory('game-intro')" class="group w-64 h-12 bg-white border-2 border-[#FF2E93] text-[#FF2E93] hover:bg-[#FF2E93] hover:text-white rounded-full font-sans font-bold text-xs tracking-widest transition-all duration-300 transform active:scale-95 shadow-md cursor-target focus:outline-none select-none flex items-center justify-center space-x-3">
+                    <svg class="w-5 h-5 text-[#FF2E93] group-hover:text-white transition-colors duration-300 group-hover:animate-bounce" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 21l8.982-5.63c.619-.388.982-1.07.982-1.8V5.25c0-.621-.504-1.125-1.125-1.125H3.125C2.504 4.125 2 4.629 2 5.25v13.5c0 .621.504 1.125 1.125 1.125h5.688M9.813 15.904a4.49 4.49 0 0 1-2.063-2.654M9.813 15.904l2.42-1.51" />
+                    </svg>
+                    <span>遊戲介紹</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- STORY INTERLUDE -->
+        <section id="sect-story-interlude" class="hidden fixed inset-0 z-50 flex items-center justify-center p-6 text-center select-none bg-[#FF2E93]">
+            <div class="relative z-10 max-w-3xl mx-auto px-6">
+                <p class="text-white font-sans font-bold text-lg sm:text-xl md:text-2xl leading-loose tracking-widest drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]">
+                    他們都出身於北港村的傳統家業，因為北港村的舊村長已老態龍鍾，準備尋找下一位能接替村長這個職位的人，舊村長表示下一任的村長由讓更多人看到北港更多傳統文化家業的人接任，而有四位在北港村長大的年輕人，被選為這次的候選人。
+                </p>
+            </div>
+        </section>
+
+        <!-- PART 4: GAME INTRO & RULEBOARD REVEAL -->
+        <section id="sect-game-intro" class="hidden w-full h-full flex flex-col items-center justify-center transition-all duration-700 ease-in-out relative select-none">
+            
+            <!-- 階段 A: 點選香火袋 (常態微晃與點擊彈性動畫) -->
+            <div id="game-intro-bag-view" class="flex flex-col items-center justify-center w-full h-full cursor-target pointer-events-auto" onclick="revealRuleBoard()">
+                <div class="relative w-72 h-72 sm:w-96 sm:h-96 flex items-center justify-center transition-all duration-300 hover:scale-112 origin-center pointer-events-none">
+                    <img id="divine-fortune-bag" src="https://i.postimg.cc/B611rGVf/zi-chan-19-4x.png" alt="神聖香火袋" 
+                         class="w-full h-full object-contain bag-idle-animate transition-transform duration-300">
+                </div>
+            </div>
+
+            <!-- 階段 B: 籤詩展示與放大鏡 -->
+            <div id="game-intro-board-view" class="hidden opacity-0 flex flex-col items-center w-full px-4 pt-10 pb-16">
+                
+                <div class="w-full max-w-5xl flex flex-col items-center justify-center gap-10 md:gap-16 z-20">
+                    
+                    <!-- 【籤詩與高科技放大鏡區域】 -->
+                    <div id="poem-interaction-wrapper" class="w-full max-w-sm flex flex-col items-center select-none">
+                        <div id="poem-lens-container" class="tilted-card-figure w-full h-[400px] flex justify-center items-center cursor-target relative">
+                            <div class="tilted-card-mobile-alert">This effect is not optimized for mobile. Check on desktop.</div>
+                            
+                            <div class="tilted-card-inner w-full h-full">
+                                <!-- 籤詩影像 -->
+                                <img id="sacred-poem-image" src="https://i.postimg.cc/s216RRtS/zi-chan-25.png" alt="籤詩" class="w-full h-full object-contain select-none pointer-events-none">
+                                
+                                <!-- 🔬 「欻」方框科技放大鏡 -->
+                                <div id="digital-micro-lens" class="lens-scanner-box">
+                                    <img src="https://i.postimg.cc/s216RRtS/zi-chan-25.png" alt="放大圖" id="digital-micro-img" class="lens-scanner-img">
+                                    <div class="lens-scanner-cross"></div>
+                                </div>
+                            </div>
+
+                            <!-- 隨附 3D 搖擺 Tooltip 標籤 -->
+                            <figcaption id="poem-card-tooltip" class="tilted-card-caption">
+                                點擊...
+                            </figcaption>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- 📐 底部按鈕區 (拍貼機圖示按鈕會出現在籤詩的下方，點擊進入拍貼鏡頭) -->
+                <div class="flex flex-col sm:flex-row justify-center items-center gap-6 sm:gap-12 mt-12 w-full z-40">
+                    <button id="btn-back-character" onclick="triggerTransition('intro-cultural')" class="px-6 py-3 border-2 border-[#FF2E93] text-[#FF2E93] bg-white hover:bg-[#FF2E93] hover:text-white rounded-full text-xs font-sans font-bold tracking-widest uppercase transition flex items-center space-x-2 cursor-target shadow-md">
+                        <span>⬅</span>
+                        <span>角色介紹</span>
+                    </button>
+
+                    <!-- 📸 未來拍貼機按鈕 (在籤詩下方，連接拍貼機) -->
+                    <button id="btn-to-photobooth" onclick="triggerTransition('photobooth')" class="group flex items-center space-x-3 bg-[#FF2E93] border-2 border-[#FF2E93] text-white hover:bg-white hover:text-[#FF2E93] px-6 py-3 rounded-full font-sans font-bold text-xs tracking-widest transition-all duration-300 transform active:scale-95 shadow-md cursor-target focus:outline-none select-none">
+                        <svg class="w-6 h-6 text-white group-hover:text-[#FF2E93] transition-colors duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
+                        </svg>
+                        <span>造勢拍貼機</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- PART 5: FUTURE PHOTOBOOTH (大視窗、無底片背板、全螢幕點選拍照、3pt 粉色框) -->
+        <section id="sect-photobooth" class="hidden fixed inset-0 z-10 flex flex-col items-center justify-center bg-gradient-to-b from-[#FFFFFF] to-[#FFFF00] p-4 select-none cursor-target">
+            <div class="w-full max-w-lg flex flex-col items-center text-center relative pointer-events-none">
+                
+                <!-- 📸 頂部提示與進度格 -->
+                <div class="mb-6 z-20 flex flex-col items-center space-y-1 pointer-events-auto">
+                    <h2 class="text-3xl font-black text-temple-neonPink tracking-widest uppercase drop-shadow-sm">造勢拍貼機</h2>
+                    <p id="photobooth-instruction" class="text-xs font-bold text-slate-500 animate-pulse tracking-wider">點擊下方相機按鈕開始</p>
+                    <div id="photobooth-progress-dots" class="flex justify-center items-center gap-3 mt-2">
+                        <div class="pb-dot w-3 h-3 rounded-full bg-slate-300 transition-all duration-300"></div>
+                        <div class="pb-dot w-3 h-3 rounded-full bg-slate-300 transition-all duration-300"></div>
+                        <div class="pb-dot w-3 h-3 rounded-full bg-slate-300 transition-all duration-300"></div>
+                        <div class="pb-dot w-3 h-3 rounded-full bg-slate-300 transition-all duration-300"></div>
+                    </div>
+                </div>
+
+                <!-- 🐠 圓形極簡相機鏡頭 (拍攝外框粉色 3pt/3px，黑色部分為鏡頭) -->
+                <div class="relative w-[70vw] h-[70vw] max-w-[360px] max-h-[360px] rounded-full overflow-hidden z-10 border-[3px] border-[#FF2E93] shadow-[0_0_30px_rgba(255,46,147,0.5)] bg-black pointer-events-auto">
+                    <!-- 實體 WebCam 視訊 (隱藏) -->
+                    <video id="webcam-video" autoplay playsinline muted class="hidden"></video>
+                    <!-- 核心鏡像與魚眼影像處理畫布 -->
+                    <canvas id="photobooth-canvas" class="w-full h-full object-cover block bg-black"></canvas>
+                    
+                    <!-- ⏱️ 倒數計時大數字 -->
+                    <div id="photobooth-countdown" class="absolute inset-0 flex items-center justify-center text-8xl font-black text-[#FFFF00] drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)] opacity-0 pointer-events-none select-none z-30">
+                        3
+                    </div>
+                </div>
+
+                <!-- 📐 底部控制按鈕 -->
+                <div class="relative flex items-center justify-center w-full max-w-[320px] mt-8 z-20 pointer-events-auto">
+                    <button onclick="leavePhotobooth(event)" class="absolute left-0 px-4 py-2 border-2 border-[#FF2E93] text-[#FF2E93] bg-transparent hover:bg-[#FF2E93] hover:text-white rounded-full text-xs font-sans font-bold tracking-widest uppercase transition duration-300 cursor-target">
+                        返回
+                    </button>
+                    <button onclick="startPhotoboothSequence(event)" class="w-20 h-20 bg-white text-[#FF2E93] border-4 border-[#FF2E93] hover:bg-[#FF2E93] hover:text-white rounded-full flex flex-col items-center justify-center transition-all duration-300 transform active:scale-90 shadow-[0_0_20px_rgba(255,46,147,0.4)] cursor-target">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- PART 6: PHOTOBOOTH RESULTS (直式四格相片底片) -->
+        <section id="sect-photobooth-results" class="hidden fixed inset-0 z-10 flex flex-col items-center justify-center bg-gradient-to-b from-[#FFFFFF] to-[#FFFF00] p-4 overflow-y-auto select-none no-scrollbar">
+            <div class="w-full max-w-4xl flex flex-col items-center text-center py-8">
+                <h2 class="text-3xl font-black text-temple-neonPink tracking-widest uppercase mb-6 drop-shadow-sm">未來境紀念相片</h2>
+
+                <!-- 🎞️ 四格相片預覽底片與組裝區 -->
+                <div class="flex flex-col md:flex-row items-center justify-center gap-8 w-full">
+                    <!-- 成果組裝膠卷 (對齊 資產 29@4x.jpg 的黑色圓圈區域) -->
+                    <div class="relative w-72 md:w-80 shadow-2xl rounded-lg overflow-hidden bg-white shrink-0">
+                        <canvas id="photostrip-canvas" class="w-full h-auto block"></canvas>
+                    </div>
+
+                    <!-- 下載與分享控制台 -->
+                    <div class="flex flex-col items-center md:items-start space-y-6 text-center md:text-left max-w-sm">
+                        <h3 class="text-xl font-bold text-slate-800">恭喜完成北港朝聖！</h3>
+                        <p class="text-sm font-medium text-slate-600 leading-relaxed">
+                            您的造勢拍貼已完成 您可以點擊下方按鈕直接下載 
+                        </p>
+                        
+                        <div class="flex flex-col sm:flex-row md:flex-col gap-4 w-full">
+                            <button onclick="downloadPhotoStrip()" class="w-full px-6 py-3 bg-[#FF2E93] border-2 border-[#FF2E93] text-white hover:bg-white hover:text-[#FF2E93] rounded-full text-xs font-sans font-bold tracking-widest uppercase transition flex items-center justify-center space-x-2 cursor-target shadow-md">
+                                <span>下載相片</span>
+                            </button>
+                            <button onclick="triggerTransition('photobooth')" class="w-full px-6 py-3 border-2 border-[#FF2E93] text-[#FF2E93] bg-white hover:bg-[#FF2E93] hover:text-white rounded-full text-xs font-sans font-bold tracking-widest uppercase transition flex items-center justify-center space-x-2 cursor-target shadow-md">
+                                <span>重新拍一張</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- INTERACTIVE JAVASCRIPT SYSTEM -->
+    <script>
+        let selectedFaqiIndex = 0;
+        let isCardExpanded = false; 
+        let audioCtx = null;
+        let isAudioMuted = false;
+        let droneOsc = null;
+        let droneGain = null;
+        let currentSectionKey = 'home'; 
+        let isLensActive = false; // 放大鏡開關狀態
+
+        // 🔊 音量全域控制
+        let globalVolumeValue = 50; 
+        let bgMusic = null; 
+
+        const transitionImages = [
+            "https://i.postimg.cc/X7ZWjTdg/zi-chan-12-4x.png", // 燈籠
+            "https://i.postimg.cc/wTSp70kJ/zi-chan-13-4x.png", // 宮主
+            "https://i.postimg.cc/1zS1KXTk/zi-chan-14-4x.png", // 廟宇
+            "https://i.postimg.cc/ZRKk1gJH/zi-chan-11-4x.png"  // 藝閣
+        ];
+        
+        const culturalDatabase = [
+            { 
+                title: "北港大餅", 
+                desc: "北港大餅是北港地區具代表性的傳統糕餅文化，早期隨著北港商業發展與媽祖信仰興盛而逐漸聞名。大餅多以麵粉製成外皮，內餡包入豆沙、滷肉、蛋黃等豐富食材，口感紮實且層次豐富，常作為婚嫁喜慶、祭祀供品及節慶贈禮使用。隨著製餅技藝代代傳承，北港大餅不僅成為地方特色美食，更承載著北港的人情文化與傳統習俗，是許多人認識北港的重要文化象徵之一。", 
+                iconSvg: `<img src="https://i.postimg.cc/wTKwBQxb/da-bing.jpg" alt="北港大餅" class="w-full h-full object-cover select-none pointer-events-none rounded-[15px]">` 
+            },
+            { 
+                title: "北港藝閣", 
+                desc: "北港藝閣是北港地區最具代表性的民俗文化活動之一，源自傳統花車遊行文化，至今已有百年以上歷史。活動通常於媽祖誕辰期間舉行，由精心裝飾的藝閣車巡遊街道，車上裝扮成神話、戲曲 or 歷史人物的孩童透過表演與民眾互動，並沿途發送糖果與吉祥物品。藝閣結合宗教信仰、地方工藝與民俗表演，不仅展現北港豐富的文化特色，也成為地方居民共同參與的重要文化盛事。", 
+                iconSvg: `<img src="https://i.postimg.cc/MHBtDvtx/yi-ge.jpg" alt="北港藝閣" class="w-full h-full object-cover select-none pointer-events-none rounded-[15px]">` 
+            },
+            { 
+                title: "北港燈籠", 
+                desc: "北港燈籠是北港地區重要的傳統工藝與文化象徵，早期因宗教信仰興盛，燈籠廣泛應用於廟宇祭典、遶境活動及節慶裝飾。北港燈籠以手工製作為主，結合竹編、裱紙與彩繪等傳統技法，不仅具有照明功能，更承載著祈福、平安與光明的寓意。隨著媽祖信仰文化的發展，燈籠逐漸成為北港街區的重要景觀元素，展現地方傳統工藝與宗教文化交織而成的獨特特色", 
+                iconSvg: `<img src="https://i.postimg.cc/Wpq9jHVr/deng-long.jpg" alt="北港燈籠" class="w-full h-full object-cover select-none pointer-events-none rounded-[15px]">` 
+            },
+            { 
+                title: "北港朝天宮", 
+                desc: "北港朝天宮位於雲林縣北港鎮，創建於1694年，主祀天上聖母媽祖，是臺灣最具代表性的媽祖信仰中心之一。北港舊稱「笨港」，早期因港口貿易興盛而成為重要聚落，朝天宮也隨著地方發展逐漸成為臺灣媽祖信仰的重要據點。廟宇不僅擁有豐富的歷史文化與精湛的傳統建築工藝，更見證了北港從繁榮港口到現代城鎮的發展歷程，承載著地方居民的信仰記憶與文化傳承。", 
+                iconSvg: `<img src="https://i.postimg.cc/7PJBDW4B/gong-zhu.jpg" alt="北港朝天宮" class="w-full h-full object-cover select-none pointer-events-none rounded-[15px]">` 
+            }
+        ];
+
+        const faqiCandidateStories = [
+            {
+                name: "餅幫求",
+                story: "家中大餅店已經營百年歷史，但生意被最近新開在旁邊的國外現代蛋糕店搶走，他參加村長競選想要讓他們家傳的大餅店再次被看見。"
+            },
+            {
+                name: "朱大閣",
+                story: "家裡長年製作藝閣車，但現在人們都在都市生活工作不願前往洮巷來吸引民眾，他不願讓藝閣文化逐漸沒人參與，所以他決定出來參選，讓大家看到洮巷的藝閣。"
+            },
+            {
+                name: "燈大郎",
+                story: "從小跟著學習如何製作燈籠與手繪技藝，如今是資訊化社會，很少人會願意學習這項工藝，他想從這次選村長的機會再次讓大眾看到他精湛的燈籠手藝。"
+            },
+            {
+                name: "宮薩孝",
+                story: "從小在宮廟長大的宮薩孝，想逃出父親的名聲，靠自己的努力去讓更多人重新認識北港的祭典儀式與信仰文化，決定選村長讓大眾看到他。"
+            }
+        ];
+
+        // ==========================================
+        // 🔊 AUDIO ENGINE
+        // ==========================================
+        function initAudio() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            droneOsc = audioCtx.createOscillator();
+            droneGain = audioCtx.createGain();
+            
+            droneOsc.type = 'sine';
+            droneOsc.frequency.setValueAtTime(60, audioCtx.currentTime); 
+            
+            let filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(150, audioCtx.currentTime);
+            
+            let baseHumVol = (globalVolumeValue / 100) * 0.16;
+            droneGain.gain.setValueAtTime(baseHumVol, audioCtx.currentTime);
+            
+            droneOsc.connect(filter);
+            filter.connect(droneGain);
+            droneGain.connect(audioCtx.destination);
+            droneOsc.start();
+
+            try {
+                bgMusic = new Audio("Lantern Arcade Nights.mp3");
+                bgMusic.loop = true;
+                bgMusic.volume = (globalVolumeValue / 100) * 0.45;
+                bgMusic.play().catch(e => {
+                    console.log("Browser blocked autoplay.", e);
+                });
+            } catch (err) {
+                console.error("Audio error:", err);
+            }
+        }
+
+        function updateGlobalVolume(val) {
+            globalVolumeValue = val;
+            if (audioCtx && droneGain) {
+                let scaledHum = (globalVolumeValue / 100) * 0.16;
+                droneGain.gain.setValueAtTime(scaledHum, audioCtx.currentTime);
+            }
+            if (bgMusic) {
+                bgMusic.volume = (val / 100) * 0.45;
+            }
+        }
+
+        function playPikminCuteSound(type = 'chirp') {
+            initAudio();
+            if(!audioCtx || isAudioMuted) return;
+            const now = audioCtx.currentTime;
+            
+            let osc = audioCtx.createOscillator();
+            let osc2 = audioCtx.createOscillator(); 
+            let gainNode = audioCtx.createGain();
+            
+            osc.type = 'triangle';
+            osc2.type = 'sine';
+            
+            let volFactor = globalVolumeValue / 100;
+
+            if (type === 'chirp') {
+                osc.frequency.setValueAtTime(1600, now);
+                osc.frequency.exponentialRampToValueAtTime(2600, now + 0.08);
+                osc2.frequency.setValueAtTime(3200, now);
+                osc2.frequency.exponentialRampToValueAtTime(5200, now + 0.08);
+                
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(0.16 * volFactor, now + 0.01);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+            } else if (type === 'surprise') {
+                osc.frequency.setValueAtTime(2200, now);
+                osc.frequency.exponentialRampToValueAtTime(1100, now + 0.15);
+                osc2.frequency.setValueAtTime(4400, now);
+                osc2.frequency.exponentialRampToValueAtTime(2200, now + 0.15);
+                
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(0.15 * volFactor, now + 0.01);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+            } else if (type === 'chorus') {
+                playPikminChirpWithDelay(1500, 0, volFactor);
+                playPikminChirpWithDelay(1800, 40, volFactor);
+                playPikminChirpWithDelay(2100, 80, volFactor);
+                playPikminChirpWithDelay(2400, 120, volFactor);
+                return;
+            } else if (type === 'sweep') {
+                osc.frequency.setValueAtTime(350, now);
+                osc.frequency.exponentialRampToValueAtTime(2400, now + 0.45);
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(0.25 * volFactor, now + 0.05);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+            }
+            
+            let filter = audioCtx.createBiquadFilter();
+            filter.type = 'highpass';
+            filter.frequency.setValueAtTime(800, now);
+            
+            osc.connect(filter);
+            osc2.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.start(now);
+            osc2.start(now);
+            osc.stop(now + 0.45);
+            osc2.stop(now + 0.45);
+        }
+
+        function playPikminChirpWithDelay(freq, delay, volFactor) {
+            setTimeout(() => {
+                if(!audioCtx || isAudioMuted) return;
+                const now = audioCtx.currentTime;
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, now);
+                osc.frequency.exponentialRampToValueAtTime(freq * 1.5, now + 0.1);
+                gain.gain.setValueAtTime(0.12 * volFactor, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(now + 0.15);
+            }, delay);
+        }
+
+        function playClickSound() { playPikminCuteSound('chirp'); }
+        function playWhooshSound() { playPikminCuteSound('surprise'); }
+        function playTransitionSweep() { playPikminCuteSound('sweep'); }
+        function playDivineSound() { playPikminCuteSound('chorus'); }
+
+        // ==========================================
+        // 🎛️ ElasticSlider Styles
+        // ==========================================
+        let isVolumeDropdownOpen = false;
+        let isDraggingSlider = false;
+
+        function toggleVolumeDropdown() {
+            initAudio();
+            const dropdown = document.getElementById('volume-slider-dropdown');
+            isVolumeDropdownOpen = !isVolumeDropdownOpen;
+            
+            if(isVolumeDropdownOpen) {
+                dropdown.classList.remove('hidden');
+                gsap.fromTo(dropdown, { opacity: 0, y: -10, scale: 0.95 }, { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "power3.out" });
+                playClickSound();
+            } else {
+                gsap.to(dropdown, { opacity: 0, y: -10, scale: 0.95, duration: 0.2, ease: "power3.in", onComplete: () => {
+                    dropdown.classList.add('hidden');
+                }});
+                playWhooshSound();
+            }
+        }
+
+        const MAX_OVERFLOW = 50;
+
+        function decay(value, max) {
+            if (max === 0) return 0;
+            const entry = value / max;
+            const sigmoid = 2 * (1 / (1 + Math.exp(-entry)) - 0.5);
+            return sigmoid * max;
+        }
+
+        function updateSliderValueUI(percent, overflowValue = 0, side = 'none') {
+            const range = document.getElementById('volume-slider-range');
+            const indicator = document.getElementById('elastic-value-indicator');
+            const leftIcon = document.getElementById('elastic-icon-left');
+            const rightIcon = document.getElementById('elastic-icon-right');
+            
+            let clampedPercent = Math.min(Math.max(percent, 0), 100);
+            range.style.width = `${clampedPercent}%`;
+            
+            let displayVal = Math.round(clampedPercent);
+            indicator.innerText = displayVal;
+            document.getElementById('soundText').innerText = `Sound ${displayVal}%`;
+
+            updateGlobalVolume(displayVal);
+
+            if(overflowValue !== 0) {
+                if(side === 'left') {
+                    gsap.to(leftIcon, { x: -overflowValue, scale: 1.4, duration: 0.1, ease: "none" });
+                } else if(side === 'right') {
+                    gsap.to(rightIcon, { x: overflowValue, scale: 1.4, duration: 0.1, ease: "none" });
+                }
+            }
+        }
+
+        function handleSliderPointerDown(e) {
+            isDraggingSlider = true;
+            e.currentTarget.setPointerCapture(e.pointerId);
+            handleSliderDrag(e);
+        }
+
+        function handleSliderDrag(e) {
+            if(!isDraggingSlider) return;
+            const root = document.getElementById('volume-slider-root');
+            const rect = root.getBoundingClientRect();
+            
+            let relativeX = e.clientX - rect.left;
+            let percent = (relativeX / rect.width) * 100;
+            
+            let overflowVal = 0;
+            let side = 'none';
+
+            if (e.clientX < rect.left) {
+                side = 'left';
+                let rawOverflow = rect.left - e.clientX;
+                overflowVal = decay(rawOverflow, MAX_OVERFLOW);
+                percent = 0;
+            } else if (e.clientX > rect.right) {
+                side = 'right';
+                let rawOverflow = e.clientX - rect.right;
+                overflowVal = decay(rawOverflow, MAX_OVERFLOW);
+                percent = 100;
+            }
+
+            updateSliderValueUI(percent, overflowVal, side);
+        }
+
+        function handleSliderPointerUp(e) {
+            if(!isDraggingSlider) return;
+            isDraggingSlider = false;
+            
+            const leftIcon = document.getElementById('elastic-icon-left');
+            const rightIcon = document.getElementById('elastic-icon-right');
+
+            gsap.to([leftIcon, rightIcon], { 
+                x: 0, 
+                scale: 1, 
+                duration: 0.5, 
+                ease: "elastic.out(1, 0.4)" 
+            });
+            playPikminCuteSound('chirp');
+        }
+
+        window.addEventListener('pointermove', (e) => {
+            if(isDraggingSlider) handleSliderDrag(e);
+        });
+        window.addEventListener('pointerup', (e) => {
+            if(isDraggingSlider) handleSliderPointerUp(e);
+        });
+
+        // ==========================================
+        // 🎴 TiltedCard 傾斜卡牌
+        // ==========================================
+        const tiltSettings = {
+            rotateAmplitude: 14,
+            scaleOnHover: 1.05
+        };
+
+        function bindTiltedCard(elementId, tooltipId) {
+            const cardFigure = document.getElementById(elementId);
+            if (!cardFigure) return;
+            const cardInner = cardFigure.querySelector('.tilted-card-inner');
+            const tooltip = document.getElementById(tooltipId);
+            if (!cardInner) return;
+
+            cardFigure.addEventListener('mousemove', (e) => {
+                const rect = cardFigure.getBoundingClientRect();
+                const offsetX = e.clientX - rect.left - rect.width / 2;
+                const offsetY = e.clientY - rect.top - rect.height / 2;
+
+                const rotationX = (offsetY / (rect.height / 2)) * -tiltSettings.rotateAmplitude;
+                const rotationY = (offsetX / (rect.width / 2)) * tiltSettings.rotateAmplitude;
+
+                gsap.to(cardInner, {
+                    rotateX: rotationX,
+                    rotateY: rotationY,
+                    scale: tiltSettings.scaleOnHover,
+                    duration: 0.15,
+                    ease: "power2.out",
+                    overwrite: "auto"
+                });
+
+                if (tooltip) {
+                    gsap.to(tooltip, {
+                        left: e.clientX - rect.left,
+                        top: e.clientY - rect.top,
+                        opacity: 1,
+                        duration: 0.1,
+                        overwrite: "auto"
+                    });
+                }
+            });
+
+            cardFigure.addEventListener('mouseenter', () => {
+                playPikminCuteSound('chirp');
+                if (tooltip) gsap.to(tooltip, { opacity: 1, duration: 0.2 });
+            });
+
+            cardFigure.addEventListener('mouseleave', () => {
+                gsap.to(cardInner, {
+                    rotateX: 0,
+                    rotateY: 0,
+                    scale: 1,
+                    duration: 0.4,
+                    ease: "power2.out",
+                    overwrite: "auto"
+                });
+                if (tooltip) gsap.to(tooltip, { opacity: 0, duration: 0.2 });
+            });
+        }
+
+        function setupTiltedCardEffect() {
+            bindTiltedCard('interactive-cultural-card', 'tilted-card-tooltip');
+            bindTiltedCard('poem-lens-container', 'poem-card-tooltip');
+        }
+
+        function triggerCrosshairStory(e) {
+            e.stopPropagation();
+            playClickSound();
+
+            const modal = document.getElementById('crosshair-story-modal');
+            const story = faqiCandidateStories[selectedFaqiIndex];
+            
+            document.getElementById('modal-candidate-name').innerText = story.name;
+            document.getElementById('modal-candidate-story').innerText = story.story;
+
+            const clickX = e.clientX;
+            const clickY = e.clientY;
+
+            let posX = clickX + 15;
+            let posY = clickY + 15;
+
+            if (posX + 320 > window.innerWidth) {
+                posX = clickX - 335;
+            }
+            if (posY + 180 > window.innerHeight) {
+                posY = clickY - 195;
+            }
+
+            modal.style.left = posX + 'px';
+            modal.style.top = posY + 'px';
+            modal.style.display = 'block';
+
+            gsap.fromTo(modal, {
+                opacity: 0,
+                scale: 0.85
+            }, {
+                opacity: 1,
+                scale: 1,
+                duration: 0.3,
+                ease: "power3.out"
+            });
+        }
+
+        function closeStoryModal() {
+            const modal = document.getElementById('crosshair-story-modal');
+            gsap.to(modal, {
+                opacity: 0,
+                scale: 0.85,
+                duration: 0.2,
+                onComplete: () => {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            const modal = document.getElementById('crosshair-story-modal');
+            if (modal.style.display === 'block' && !modal.contains(e.target)) {
+                closeStoryModal();
+            }
+        });
+
+        // ==========================================
+        // Pixel Reveal Core
+        // ==========================================
+        let pixelsArray = [];
+        let pixelAnimFrame = null;
+
+        function initPixelEffect(canvas) {
+            const ctx = canvas.getContext('2d');
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            
+            const gap = 6;
+            const speed = 0.08;
+            const colors = ['#fecdd3', '#fda4af', '#e11d48'];
+            
+            pixelsArray = [];
+            for (let x = 0; x < canvas.width; x += gap) {
+                for (let y = 0; y < canvas.height; y += gap) {
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    const dx = x - canvas.width / 2;
+                    const dy = y - canvas.height / 2;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    pixelsArray.push(new Pixel(canvas, ctx, x, y, color, speed, distance));
+                }
+            }
+        }
+
+        function doPixelAnimate(mode) {
+            const canvas = document.getElementById('pixel-canvas');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            cancelAnimationFrame(pixelAnimFrame);
+            
+            function loop() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let allIdle = true;
+                for(let i = 0; i < pixelsArray.length; i++) {
+                    if(mode === 'appear') {
+                        pixelsArray[i].appear();
+                        if(!pixelsArray[i].isShimmer) allIdle = false;
+                    } else {
+                        pixelsArray[i].disappear();
+                        if(!pixelsArray[i].isIdle) allIdle = false;
+                    }
+                }
+                if(!allIdle || mode === 'appear') {
+                    pixelAnimFrame = requestAnimationFrame(loop);
+                }
+            }
+            loop();
+        }
+
+        function bindCanvasEvents() {
+            const cardFront = document.querySelector('#interactive-cultural-card .tilted-card-inner');
+            if(cardFront) {
+                cardFront.addEventListener('mouseenter', () => doPixelAnimate('appear'));
+                cardFront.addEventListener('mouseleave', () => doPixelAnimate('disappear'));
+            }
+        }
+
+        // ==========================================
+        // Navigation & Flow
+        // ==========================================
+        function showSection(sectionKey) {
+            currentSectionKey = sectionKey;
+            const sections = ['home', 'select', 'intro-cultural', 'game-intro', 'photobooth', 'photobooth-results'];
+            sections.forEach(key => {
+                const el = document.getElementById(`sect-${key}`);
+                if(el) {
+                    if(key === sectionKey) {
+                        el.classList.remove('hidden');
+                        gsap.fromTo(el, { opacity: 0 }, { opacity: 1, duration: 0.6 });
+                    } else {
+                        el.classList.add('hidden');
+                    }
+                }
+            });
+            
+            if (sectionKey === 'photobooth') {
+                initPhotoboothSystem();
+            } else {
+                stopPhotoboothSystem();
+            }
+        }
+
+        function triggerTransition(targetSection) {
+            playTransitionSweep(); 
+            const transLayer = document.getElementById('sect-transition');
+            const iconImg = document.getElementById('cycling-icon-image');
+            
+            if (!transLayer) {
+                showSection(targetSection);
+                return;
+            }
+
+            transLayer.classList.remove('hidden');
+            gsap.fromTo(transLayer, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+
+            let index = 0;
+            let cycleInterval = setInterval(() => {
+                index = (index + 1) % transitionImages.length;
+                iconImg.src = transitionImages[index];
+                
+                if (Math.random() > 0.4) {
+                    playPikminCuteSound('chirp');
+                }
+            }, 150);
+
+            setTimeout(() => {
+                clearInterval(cycleInterval);
+                gsap.to(transLayer, { opacity: 0, duration: 0.4, onComplete: () => {
+                    transLayer.classList.add('hidden');
+                    showSection(targetSection);
+                    if(targetSection === 'intro-cultural') {
+                        updateCulturalCard();
+                    }
+                }});
+            }, 1200);
+        }
+
+        function triggerTransitionWithStory(targetSection) {
+            playTransitionSweep(); 
+            closeStoryModal(); 
+            
+            const storyLayer = document.getElementById('sect-story-interlude');
+            storyLayer.classList.remove('hidden');
+            
+            gsap.fromTo(storyLayer, { opacity: 0 }, { 
+                opacity: 1, 
+                duration: 0.5,
+                onComplete: () => {
+                    const culturalSect = document.getElementById('sect-intro-cultural');
+                    if (culturalSect) {
+                        culturalSect.classList.add('hidden');
+                        culturalSect.style.opacity = '0';
+                    }
+                }
+            });
+
+            setTimeout(() => {
+                gsap.to(storyLayer, { 
+                    opacity: 0, 
+                    duration: 0.5, 
+                    onStart: () => {
+                        playPikminCuteSound('chirp'); 
+                    },
+                    onComplete: () => {
+                        storyLayer.classList.add('hidden');
+                        showSection(targetSection); 
+                        
+                        document.getElementById('game-intro-bag-view').classList.remove('hidden');
+                        document.getElementById('game-intro-bag-view').style.opacity = '1';
+                        document.getElementById('game-intro-board-view').classList.add('hidden');
+                        document.getElementById('game-intro-board-view').style.opacity = '0';
+                        
+                        const bag = document.getElementById('divine-fortune-bag');
+                        bag.classList.add('bag-idle-animate');
+                        bag.classList.remove('bag-active-animate');
+                        
+                        playWhooshSound(); 
+                    }
+                });
+            }, 3500); 
+        }
+
+        function goToHome() {
+            closeStoryModal();
+            triggerTransition('home');
+        }
+
+        function handleFlatIconClick(index) {
+            selectedFaqiIndex = index;
+            triggerTransition('intro-cultural');
+        }
+
+        function updateCulturalCard() {
+            const data = culturalDatabase[selectedFaqiIndex];
+            closeStoryModal(); 
+
+            document.getElementById('cultural-display-icon-front').innerHTML = data.iconSvg;
+            document.getElementById('cultural-title').innerText = data.title;
+            document.getElementById('cultural-desc').innerText = data.desc;
+            
+            const canvas = document.getElementById('pixel-canvas');
+            if(canvas) {
+                initPixelEffect(canvas);
+            }
+        }
+
+        function navigateHeritage(direction) {
+            selectedFaqiIndex = (selectedFaqiIndex + direction + 4) % 4;
+            updateCulturalCard();
+        }
+
+        // ==========================================
+        // 🧧 Divine Fortune Bag Sequence & Flash
+        // ==========================================
+        function revealRuleBoard() {
+            const bag = document.getElementById('divine-fortune-bag');
+            const flash = document.getElementById('divine-gold-flash');
+            
+            bag.classList.remove('bag-idle-animate');
+            bag.classList.add('bag-active-animate');
+            playDivineSound(); 
+
+            gsap.fromTo(flash, { opacity: 0 }, { 
+                opacity: 1, 
+                duration: 0.15, 
+                onComplete: () => {
+                    gsap.to(flash, { opacity: 0, duration: 1.0, ease: "power2.out" });
+                } 
+            });
+            
+            setTimeout(() => {
+                const bagView = document.getElementById('game-intro-bag-view');
+                const boardView = document.getElementById('game-intro-board-view');
+                
+                playTransitionSweep();
+
+                gsap.to(bagView, { opacity: 0, duration: 0.4, onComplete: () => {
+                    bagView.classList.add('hidden');
+                    boardView.classList.remove('hidden');
+                    
+                    const poemContainer = document.getElementById('poem-interaction-wrapper');
+                    gsap.set(poemContainer, {
+                        y: 100, 
+                        opacity: 0,
+                        scale: 1,
+                        visibility: 'visible'
+                    });
+                    
+                    gsap.to(boardView, { opacity: 1, duration: 0.6 });
+
+                    gsap.to(poemContainer, {
+                        y: 0,
+                        opacity: 1,
+                        duration: 1.8, 
+                        ease: "power3.out" 
+                    });
+
+                    initMagnifierLens();
+                }});
+            }, 850); 
+        }
+
+        // ==========================================
+        // 🔬 Magnifier Lens Scanner
+        // ==========================================
+        function initMagnifierLens() {
+            const container = document.getElementById('poem-lens-container');
+            const lens = document.getElementById('digital-micro-lens');
+            const macroImg = document.getElementById('digital-micro-img');
+            
+            if(!container || !lens || !macroImg) return;
+            
+            isLensActive = false;
+            lens.style.display = 'none';
+
+            container.addEventListener('click', (e) => {
+                isLensActive = !isLensActive;
+                playClickSound();
+                if(isLensActive) {
+                    lens.style.display = 'block';
+                    updateLens(e);
+                } else {
+                    lens.style.display = 'none';
+                }
+            });
+            
+            container.addEventListener('mousemove', (e) => {
+                if(!isLensActive) return;
+                updateLens(e);
+            });
+
+            function updateLens(e) {
+                const rect = container.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
+                    lens.style.display = 'none';
+                    isLensActive = false;
+                    return;
+                }
+                
+                const lensW = 240;
+                const lensH = 140;
+                lens.style.left = (x - lensW / 2) + 'px';
+                lens.style.top = (y - lensH / 2) + 'px';
+                
+                const zoom = 2.5;
+                macroImg.style.width = (rect.width * zoom) + 'px';
+                macroImg.style.height = (rect.height * zoom) + 'px';
+                macroImg.style.left = (-x * zoom + lensW / 2) + 'px';
+                macroImg.style.top = (-y * zoom + lensH / 2) + 'px';
+            }
+        }
+
+        // ==========================================================
+        // 🐠 FISHEYE WEB-CAMERA ENGINE (With Horizontal Mirroring)
+        // ==========================================================
+        let webcamStream = null;
+        let pbCanvas = null;
+        let pbCtx = null;
+        let pbAnimationId = null;
+        let isShootingSequence = false;
+        let photoboothCapturedPhotos = []; 
+        
+        let pbLUT = null;
+        const PB_W = 320;
+        const PB_H = 320;
+
+        const pbFloatingImages = [];
+        const pbFloatingIconsArray = [];
+        const floatingIconSources = [
+            "https://i.postimg.cc/X7ZWjTdg/zi-chan-12-4x.png", // 燈籠
+            "https://i.postimg.cc/wTSp70kJ/zi-chan-13-4x.png", // 宮主
+            "https://i.postimg.cc/ZRKk1gJH/zi-chan-11-4x.png", // 藝閣
+            "https://i.postimg.cc/1zS1KXTk/zi-chan-14-4x.png"  // 廟宇
+        ];
+
+        let loadedIconCount = 0;
+        floatingIconSources.forEach(src => {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = () => {
+                pbFloatingImages.push(img);
+                loadedIconCount++;
+            };
+            img.src = src;
+        });
+
+        class PicaFloatingIcon {
+            constructor(img, maxRadius) {
+                this.img = img;
+                this.maxRadius = maxRadius; 
+                this.size = 28 + Math.random() * 14; 
+                
+                const angle = Math.random() * Math.PI * 2;
+                const dist = Math.random() * (maxRadius - this.size);
+                this.x = maxRadius + dist * Math.cos(angle);
+                this.y = maxRadius + dist * Math.sin(angle);
+                
+                this.vx = (Math.random() - 0.5) * 2.8;
+                this.vy = (Math.random() - 0.5) * 2.8;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.vRot = (Math.random() - 0.5) * 0.04;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.rotation += this.vRot;
+                
+                const cx = this.maxRadius;
+                const cy = this.maxRadius;
+                const dx = this.x - cx;
+                const dy = this.y - cy;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                
+                const limit = this.maxRadius - this.size / 2;
+                if (dist > limit) {
+                    const nx = dx / dist;
+                    const ny = dy / dist;
+                    
+                    this.x = cx + nx * limit;
+                    this.y = cy + ny * limit;
+                    
+                    const dot = this.vx * nx + this.vy * ny;
+                    this.vx = this.vx - 2 * dot * nx;
+                    this.vy = this.vy - 2 * dot * ny;
+                    
+                    this.vx += (Math.random() - 0.5) * 0.4;
+                    this.vy += (Math.random() - 0.5) * 0.4;
+                }
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.drawImage(this.img, -this.size/2, -this.size/2, this.size, this.size);
+                ctx.restore();
+            }
+        }
+
+        function initFisheyeLUT(w, h) {
+            pbLUT = new Int32Array(w * h * 2);
+            const cx = w / 2;
+            const cy = h / 2;
+            const maxR = Math.min(cx, cy);
+            let idx = 0;
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    const dx = x - cx;
+                    const dy = y - cy;
+                    const r = Math.sqrt(dx*dx + dy*dy);
+                    if (r < maxR) {
+                        const normR = r / maxR;
+                        const theta = Math.atan2(dy, dx);
+                        const warpedR = Math.pow(normR, 1.4) * maxR; 
+                        const sx = Math.round(cx + warpedR * Math.cos(theta));
+                        const sy = Math.round(cy + warpedR * Math.sin(theta));
+                        pbLUT[idx++] = Math.min(Math.max(sx, 0), w - 1);
+                        pbLUT[idx++] = Math.min(Math.max(sy, 0), h - 1);
+                    } else {
+                        pbLUT[idx++] = -1;
+                        pbLUT[idx++] = -1;
+                    }
+                }
+            }
+        }
+
+        function initPhotoboothSystem() {
+            pbCanvas = document.getElementById('photobooth-canvas');
+            pbCtx = pbCanvas.getContext('2d');
+            
+            pbCanvas.width = PB_W;
+            pbCanvas.height = PB_H;
+            
+            if(!pbLUT) {
+                initFisheyeLUT(PB_W, PB_H);
+            }
+
+            isShootingSequence = false;
+            photoboothCapturedPhotos = [];
+            resetProgressDots();
+
+            pbFloatingIconsArray.length = 0;
+            if(pbFloatingImages.length > 0) {
+                const count = 7 + Math.floor(Math.random() * 5);
+                for(let i=0; i<count; i++) {
+                    const randImg = pbFloatingImages[Math.floor(Math.random() * pbFloatingImages.length)];
+                    pbFloatingIconsArray.push(new PicaFloatingIcon(randImg, PB_W / 2));
+                }
+            }
+
+            const video = document.getElementById('webcam-video');
+            navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 320, facingMode: 'user' } })
+                .then(stream => {
+                    webcamStream = stream;
+                    video.srcObject = stream;
+                    video.play();
+                    startPhotoboothLoop(true);
+                })
+                .catch(err => {
+                    console.warn("Camera fallback active.", err);
+                    startPhotoboothLoop(false);
+                });
+        }
+
+        function stopPhotoboothSystem() {
+            cancelAnimationFrame(pbAnimationId);
+            if (webcamStream) {
+                webcamStream.getTracks().forEach(track => track.stop());
+                webcamStream = null;
+            }
+            const video = document.getElementById('webcam-video');
+            if (video) video.srcObject = null;
+        }
+
+        let cyberTime = 0;
+        function drawCyberParticleFallback(ctx, w, h) {
+            cyberTime += 0.02;
+            ctx.fillStyle = '#0B0914';
+            ctx.fillRect(0, 0, w, h);
+            
+            const cx = w / 2;
+            const cy = h / 2;
+            
+            ctx.strokeStyle = '#FF2E93';
+            ctx.lineWidth = 1;
+            for (let i = 8; i < w/2; i += 12) {
+                ctx.beginPath();
+                const radius = i + Math.sin(cyberTime * 2 + i * 0.05) * 8;
+                ctx.arc(cx, cy, Math.abs(radius), 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(255, 46, 147, ${0.45 - (i / (w/2)) * 0.4})`;
+                ctx.stroke();
+            }
+
+            ctx.fillStyle = '#FFFF00';
+            for (let i = 0; i < 15; i++) {
+                const angle = (i * (360 / 15) * Math.PI) / 180 + cyberTime * 0.5;
+                const dist = 60 + Math.sin(cyberTime + i) * 20;
+                const px = cx + dist * Math.cos(angle);
+                const py = cy + dist * Math.sin(angle);
+                ctx.fillRect(px - 2, py - 2, 4, 4);
+            }
+
+            ctx.fillStyle = '#FFFF00';
+            ctx.beginPath();
+            ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function startPhotoboothLoop(hasVideo) {
+            const video = document.getElementById('webcam-video');
+            const offscreenCanvas = document.createElement('canvas');
+            offscreenCanvas.width = PB_W;
+            offscreenCanvas.height = PB_H;
+            const offCtx = offscreenCanvas.getContext('2d');
+
+            function render() {
+                if (hasVideo && video.readyState === video.HAVE_ENOUGH_DATA) {
+                    const minDim = Math.min(video.videoWidth, video.videoHeight);
+                    const sx = (video.videoWidth - minDim) / 2;
+                    const sy = (video.videoHeight - minDim) / 2;
+                    
+                    // Apply Horizontal Mirroring
+                    offCtx.save();
+                    offCtx.translate(PB_W, 0);
+                    offCtx.scale(-1, 1);
+                    offCtx.drawImage(video, sx, sy, minDim, minDim, 0, 0, PB_W, PB_H);
+                    offCtx.restore();
+                } else {
+                    drawCyberParticleFallback(offCtx, PB_W, PB_H);
+                }
+
+                const srcData = offCtx.getImageData(0, 0, PB_W, PB_H);
+                const destData = pbCtx.createImageData(PB_W, PB_H);
+                const srcPixels = srcData.data;
+                const destPixels = destData.data;
+
+                let lutIdx = 0;
+                let destIdx = 0;
+                for (let y = 0; y < PB_H; y++) {
+                    for (let x = 0; x < PB_W; x++) {
+                        const sx = pbLUT[lutIdx++];
+                        const sy = pbLUT[lutIdx++];
+                        if (sx !== -1) {
+                            const srcIdx = (sy * PB_W + sx) * 4;
+                            destPixels[destIdx] = srcPixels[srcIdx];
+                            destPixels[destIdx+1] = srcPixels[srcIdx+1];
+                            destPixels[destIdx+2] = srcPixels[srcIdx+2];
+                            destPixels[destIdx+3] = 255;
+                        } else {
+                            destPixels[destIdx+3] = 0; 
+                        }
+                        destIdx += 4;
+                    }
+                }
+                pbCtx.putImageData(destData, 0, 0);
+
+                pbFloatingIconsArray.forEach(icon => {
+                    icon.update();
+                    icon.draw(pbCtx);
+                });
+
+                pbAnimationId = requestAnimationFrame(render);
+            }
+            render();
+        }
+
+        function leavePhotobooth(event) {
+            event.stopPropagation(); // 阻止事件冒泡引發拍照
+            triggerTransition('game-intro');
+        }
+
+        function resetProgressDots() {
+            const dots = document.querySelectorAll('.pb-dot');
+            dots.forEach(dot => {
+                dot.classList.remove('bg-temple-neonPink', 'scale-125');
+                dot.classList.add('bg-slate-300');
+            });
+        }
+
+        function updateProgressDot(index) {
+            const dots = document.querySelectorAll('.pb-dot');
+            if (dots[index]) {
+                dots[index].classList.remove('bg-slate-300');
+                dots[index].classList.add('bg-temple-neonPink', 'scale-125');
+            }
+        }
+
+        async function startPhotoboothSequence(event) {
+            if (event) event.stopPropagation();
+            if (isShootingSequence) return;
+            isShootingSequence = true;
+            photoboothCapturedPhotos = [];
+            resetProgressDots();
+
+            // 漸隱點選提示字樣
+            const instr = document.getElementById('photobooth-instruction');
+            if(instr) instr.classList.add('opacity-0');
+
+            for (let i = 0; i < 4; i++) {
+                updateProgressDot(i);
+                await takeSingleShot(i);
+            }
+
+            // --- 拍攝完成，進入過渡動畫 ---
+            playTransitionSweep();
+            const transLayer = document.getElementById('sect-transition');
+            const iconImg = document.getElementById('cycling-icon-image');
+            
+            transLayer.classList.remove('hidden');
+            gsap.fromTo(transLayer, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+
+            let index = 0;
+            let cycleInterval = setInterval(() => {
+                index = (index + 1) % transitionImages.length;
+                iconImg.src = transitionImages[index];
+                if (Math.random() > 0.4) {
+                    playPikminCuteSound('chirp');
+                }
+            }, 150);
+
+            // 背景處理相片合成
+            await compilePhotoStrip();
+            
+            // 確保動畫至少播放 1.5 秒
+            setTimeout(() => {
+                clearInterval(cycleInterval);
+                gsap.to(transLayer, { opacity: 0, duration: 0.4, onComplete: () => {
+                    transLayer.classList.add('hidden');
+                    showSection('photobooth-results');
+                    if(instr) instr.classList.remove('opacity-0');
+                }});
+            }, 1500);
+        }
+
+        function takeSingleShot(shotIndex) {
+            return new Promise((resolve) => {
+                const countText = document.getElementById('photobooth-countdown');
+                let count = 3;
+                countText.innerText = count;
+                countText.style.opacity = '1';
+                playClickSound();
+
+                const timer = setInterval(() => {
+                    count--;
+                    if (count > 0) {
+                        countText.innerText = count;
+                        playClickSound();
+                    } else if (count === 0) {
+                        countText.innerText = "CHEEZ!";
+                        playDivineSound(); 
+                        
+                        const flash = document.getElementById('divine-gold-flash');
+                        flash.style.backgroundColor = '#FFFFFF';
+                        gsap.fromTo(flash, { opacity: 0 }, { 
+                            opacity: 1, 
+                            duration: 0.1, 
+                            onComplete: () => {
+                                gsap.to(flash, { opacity: 0, duration: 0.6 });
+                            } 
+                        });
+
+                        captureSnapshot();
+
+                        clearInterval(timer);
+                        setTimeout(() => {
+                            countText.style.opacity = '0';
+                            resolve();
+                        }, 500);
+                    }
+                }, 1000);
+            });
+        }
+
+        function captureSnapshot() {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = PB_W;
+            tempCanvas.height = PB_H;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(pbCanvas, 0, 0);
+            photoboothCapturedPhotos.push(tempCanvas.toDataURL('image/png'));
+        }
+
+        // ==========================================
+        // 🎞️ PHOTO STRIP BAKING SYSTEM with Robust Local/Cloud Failover
+        // ==========================================
+        const pbFrameOverlays = [
+            "https://i.postimg.cc/8CpwM641/zi-chan-34-4x.png", // 第1張人物
+            "https://i.postimg.cc/59h3pGp0/zi-chan-33-4x.png", // 第2張人物
+            "https://i.postimg.cc/59h3pGp0/zi-chan-33-4x.png", // 第3張人物
+            "https://i.postimg.cc/MG30BrXy/zi-chan-31-4x.png"  // 第4張人物
+        ];
+        const pbStripTemplateSrc = "https://i.postimg.cc/tT13NtxX/zi-chan-35-4x.png"; 
+        const pbStripTemplateFallbackSrc = "https://i.postimg.cc/tT13NtxX/zi-chan-35-4x.png"; // 線上高畫質備份
+
+        function loadImagePromise(src) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.onload = () => resolve(img);
+                img.onerror = () => reject(new Error("Failed to load: " + src));
+                img.src = src;
+            });
+        }
+
+        // 雙軌自動回退機制：優先加載本地資產，若失敗，在毫秒內自動無縫切換到雲端備份！
+        async function loadAssetWithFallback(primarySrc, fallbackSrc) {
+            try {
+                return await loadImagePromise(primarySrc);
+            } catch (err) {
+                console.warn(`Primary asset failed to load (${primarySrc}). Reverting to online fallback...`, err);
+                return await loadImagePromise(fallbackSrc);
+            }
+        }
+
+        // 高精密像素透明化濾鏡：將模板中的黑色橢圓區域動態濾除，以便底片上的手繪角色重疊在相片最上層
+        function makeBlackPixelsTransparent(image) {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = image.width;
+            tempCanvas.height = image.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(image, 0, 0);
+            
+            const imgData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+            const data = imgData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i+1];
+                const b = data[i+2];
+                // 偵測並剔除接近黑色的像素 (R, G, B 皆小於 55)
+                if (r < 55 && g < 55 && b < 55) {
+                    data[i+3] = 0; // 設定為透明透明度
+                }
+            }
+            tempCtx.putImageData(imgData, 0, 0);
+            return tempCanvas;
+        }
+
+        async function compilePhotoStrip() {
+            const canvas = document.getElementById('photostrip-canvas');
+            const ctx = canvas.getContext('2d');
+
+            try {
+                // 1. 異步載入外框底圖 (支援雙軌容錯)
+                const rawTemplateImg = await loadAssetWithFallback(pbStripTemplateSrc, pbStripTemplateFallbackSrc);
+                
+                // 2. 利用 Canvas 像素偵測，將底圖中的黑色區域過濾成透明「鏤空」層
+                const transparentTemplateCanvas = makeBlackPixelsTransparent(rawTemplateImg);
+
+                canvas.width = 400;
+                canvas.height = 1200;
+                
+                ctx.clearRect(0, 0, 400, 1200);
+
+                // 3. 載入所拍下的四張魚眼快照與對應角色外框
+                const photoPromises = photoboothCapturedPhotos.map(src => loadImagePromise(src));
+                const characterPromises = pbFrameOverlays.map(src => loadImagePromise(src));
+                
+                const photos = await Promise.all(photoPromises);
+                const characters = await Promise.all(characterPromises);
+
+                // 4. 定義黑色區域中心點 Y 座標
+                const slots = [
+                    { cx: 200, cy: 170 },
+                    { cx: 200, cy: 433 },
+                    { cx: 200, cy: 696 },
+                    { cx: 200, cy: 960 }
+                ];
+
+                // 5. 繪製底部相片
+                for (let i = 0; i < 4; i++) {
+                    ctx.save();
+                    
+                    // 擴大繪製範圍以完全覆蓋鏤空區域 (矩形範圍)
+                    const drawWidth = 320;
+                    const drawHeight = 250;
+                    const drawX = slots[i].cx - drawWidth / 2;
+                    const drawY = slots[i].cy - drawHeight / 2;
+
+                    // A. 繪製拍下的魚眼照片
+                    ctx.drawImage(photos[i], drawX, drawY, drawWidth, drawHeight);
+                    
+                    // B. 疊加手繪角色邊框 details 
+                    ctx.drawImage(characters[i], drawX, drawY, drawWidth, drawHeight);
+                    
+                    ctx.restore();
+                }
+
+                // 6. 將過濾後的透明外框 (包含粉色背景、手繪朝聖人物、logo 字樣) 蓋在最上層，實現完美對齊！
+                ctx.drawImage(transparentTemplateCanvas, 0, 0, 400, 1200);
+
+                console.log("Photo strip aligned and built perfectly.");
+            } catch (err) {
+                console.error("Error building photostrip:", err);
+            }
+        }
+
+        function downloadPhotoStrip() {
+            playClickSound();
+            const canvas = document.getElementById('photostrip-canvas');
+            const link = document.createElement('a');
+            link.download = 'VIBE_TEMPLE_未來朝聖膠卷.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // ==========================================
+        // 🎯 CUSTOM MOUSE CROSSHAIR
+        // ==========================================
+        function initLaserCrosshair() {
+            const crossH = document.getElementById('crosshair-h');
+            const crossV = document.getElementById('crosshair-v');
+            
+            if(!crossH || !crossV) return;
+            gsap.to([crossH, crossV], { opacity: 0.25, duration: 0.5 });
+
+            window.addEventListener('mousemove', (e) => {
+                gsap.to(crossH, { top: e.clientY, duration: 0.04, ease: "power1.out" });
+                gsap.to(crossV, { left: e.clientX, duration: 0.04, ease: "power1.out" });
+            });
+
+            document.addEventListener('mouseover', (e) => {
+                if (e.target.classList.contains('cursor-target') || e.target.closest('button') || e.target.closest('a') || e.target.closest('#interactive-cultural-card')) {
+                    gsap.to([crossH, crossV], { background: '#FFFFFF', opacity: 0.6, duration: 0.2 });
+                }
+            });
+
+            document.addEventListener('mouseout', (e) => {
+                if (e.target.classList.contains('cursor-target') || e.target.closest('button') || e.target.closest('a') || e.target.closest('#interactive-cultural-card')) {
+                    gsap.to([crossH, crossV], { background: '#FF2E93', opacity: 0.25, duration: 0.2 });
+                }
+            });
+        }
+
+        // ==========================================
+        // Pixel class implementation
+        // ==========================================
+        class Pixel {
+            constructor(canvas, context, x, y, color, speed, delay) {
+                this.width = canvas.width;
+                this.height = canvas.height;
+                this.ctx = context;
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.speed = (Math.random() * 0.8 + 0.1) * speed;
+                this.size = 0;
+                this.sizeStep = Math.random() * 0.4;
+                this.minSize = 0.5;
+                this.maxSizeInteger = 2;
+                this.maxSize = Math.random() * (this.maxSizeInteger - this.minSize) + this.minSize;
+                this.delay = delay;
+                this.counter = 0;
+                this.counterStep = Math.random() * 4 + (this.width + this.height) * 0.01;
+                this.isIdle = false;
+                this.isReverse = false;
+                this.isShimmer = false;
+            }
+            draw() {
+                const centerOffset = this.maxSizeInteger * 0.5 - this.size * 0.5;
+                this.ctx.fillStyle = this.color;
+                this.ctx.fillRect(this.x + centerOffset, this.y + centerOffset, this.size, this.size);
+            }
+            appear() {
+                this.isIdle = false;
+                if (this.counter <= this.delay) {
+                    this.counter += this.counterStep;
+                    return;
+                }
+                if (this.size >= this.maxSize) this.isShimmer = true;
+                if (this.isShimmer) this.shimmer();
+                else this.size += this.sizeStep;
+                this.draw();
+            }
+            disappear() {
+                this.isShimmer = false;
+                this.counter = 0;
+                if (this.size <= 0) {
+                    this.isIdle = true;
+                    return;
+                } else {
+                    this.size -= 0.15;
+                }
+                this.draw();
+            }
+            shimmer() {
+                if (this.size >= this.maxSize) this.isReverse = true;
+                else if (this.size <= this.minSize) this.isReverse = false;
+                if (this.isReverse) this.size -= this.speed;
+                else this.size += this.speed;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initLaserCrosshair();
+            bindCanvasEvents();
+            setupTiltedCardEffect(); 
+            
+            window.addEventListener('resize', () => {
+                const canvas = document.getElementById('pixel-canvas');
+                if (canvas && currentSectionKey === 'intro-cultural') {
+                    initPixelEffect(canvas);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
